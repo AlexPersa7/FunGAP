@@ -1,10 +1,23 @@
-# Installation of FunGAP v1.1.0
+# Installation of FunGAP
 
+<<<<<<< HEAD
 Because FunGAP implements many dependent programs, you may encounter issues during
 installation. Please don't hesitate to post on *Issues* or contact me (mbnmbn00@gmail.com) for help.
+=======
+FunGAP requires several dependencies installed before running. The installation procedure described here was intensely tested on Ubuntu 14.04 LTS. Note that **Maker2** and **Repbase** require registration for download and installation.
+>>>>>>> parent of e2c0066... Upgrade to 1.0.1
 
-These steps were tested and confirmed in freshly installed Ubuntu 18.04 LTS.
+1. [Download FunGAP](#download)
+1. [BLAST+ installation](#blast)
+1. [Trinity installation](#trinity)
+1. [Maker2 installation](#maker)
+1. [RepeatModeler installation](#repeatmodeler)
+1. [Braker1 installation](#braker)
+1. [BUSCO Installation](#busco)
+1. [InterProScan installation](#interproscan)
+1. [Install Python modules](#pythonmodules)
 
+<<<<<<< HEAD
 ## 0. FunGAP requirements
 
 ### 0.1. Required softwares (and tested versions)
@@ -36,6 +49,11 @@ For robust installation, we recommend to use Anaconda environment and install de
 ### 1.1. Install Anaconda2 (v4.5.12 tested)
 
 Download and install Anaconda2 (We assume that you install it in ```$HOME/anaconda2```)
+=======
+<a name="download"></a>
+## Download FunGAP
+Download FunGAP using GitHub clone. Suppose we are installing FunGAP in your `$HOME` directory, but you are free to change the location.
+>>>>>>> parent of e2c0066... Upgrade to 1.0.1
 
 ```
 cd $HOME

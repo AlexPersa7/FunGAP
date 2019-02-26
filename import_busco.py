@@ -1,7 +1,7 @@
-#!/usr/bin/env python2
+#!/usr/bin/python
 
 '''
-Import BUSCO output and store in a dictionary
+Import BUSCO output and store it in dictionary
 BUSCO evidence score is HMM alignment bit score
 
 Input: BUSCO output
@@ -18,24 +18,22 @@ from collections import defaultdict
 
 
 def main(argv):
-    argparse_usage = 'import_busco.py -b <busco_dir> -o <output_dir>'
-    parser = ArgumentParser(usage=argparse_usage)
+    optparse_usage = 'import_busco.py -b <busco_dir>'
+    parser = ArgumentParser(usage=optparse_usage)
     parser.add_argument(
-        '-b', '--busco_dir', nargs=1, required=True,
-        help='BUSCO output directory (busco_out)'
-    )
-    parser.add_argument(
-        '-o', '--output_dir', nargs='?', default='gene_filtering',
-        help='Output directory (default: current working directory)'
+        "-b", "--busco_dir", dest="busco_dir", nargs=1,
+        help="BUSCO output directory (gpre_busco)"
     )
 
     args = parser.parse_args()
-    busco_dir = os.path.abspath(args.busco_dir[0])
-    output_dir = os.path.abspath(args.output_dir)
+    if args.busco_dir:
+        busco_dir = os.path.abspath(args.busco_dir[0])
+    else:
+        print '[ERROR] Please provide BUSCO DIRECTORY'
+        sys.exit(2)
 
     # Run fuctions :) Slow is as good as Fast
-    create_dir(output_dir)
-    import_busco(busco_dir, output_dir)
+    import_busco(busco_dir)
 
 
 def import_file(input_file):
@@ -45,22 +43,18 @@ def import_file(input_file):
     return txt
 
 
-def create_dir(output_dir):
-    if not os.path.exists(output_dir):
-        os.mkdir(output_dir)
-
-
-def import_busco(busco_dir, output_dir):
+def import_busco(busco_dir):
     # Because BUSCO output (full_table) doesn't have E-value
     # And raw HMM output has this, this script directly parse them
     busco_outdirs = glob(os.path.join(busco_dir, 'run_*'))
 
-    D_busco = defaultdict(float)
+    D_busco_score = defaultdict(float)
     D_score_element = {}
+    D_busco_list = defaultdict(list)
     for busco_outdir in busco_outdirs:
         prefix = os.path.basename(busco_outdir).replace('run_', '')
 
-        busco_hmmer_path = os.path.join(busco_outdir, 'hmmer_output/*out*')
+        busco_hmmer_path = os.path.join(busco_outdir, 'hmmer_output/*out')
         busco_out_files = glob(busco_hmmer_path)
 
         # Parse E-value
@@ -80,33 +74,51 @@ def import_busco(busco_dir, output_dir):
                 full_seq_score = float(line_split[7])
                 score = full_seq_score * len_ratio
 
-                if score > D_busco[(prefix, gene_id)]:
+                if score > D_busco_score[(prefix, gene_id)]:
                     # Update if having greater score
-                    D_busco[(prefix, gene_id)] = score
+                    D_busco_score[(prefix, gene_id)] = score
                     D_score_element[(prefix, gene_id)] = (
                         full_seq_score, round(len_ratio, 3), round(score, 1)
                     )
 
+        # Get BUSCO complete and duplicated list
+        full_table_file = os.path.join(
+            busco_outdir, 'full_table_%s' % (prefix)
+        )
+        full_table_txt = import_file(full_table_file)
+        for line in full_table_txt[1:]:
+            line_split = line.split('\t')
+            if line_split[1] == 'Missing':
+                continue
+
+            elif line_split[1] in ('Duplicated', 'Complete'):
+                busco_id = line_split[0]
+                gene_id = line_split[2]
+                D_busco_list[(prefix, gene_id)].append(busco_id)
+
     # Write to file
-    outfile = os.path.join(output_dir, 'busco_score.txt')
+    outfile = os.path.join(busco_dir, 'busco_parsed.txt')
     outhandle = open(outfile, 'w')
-    header_txt = '{}\t{}\t{}\t{}\t{}\n'.format(
+    header_txt = '%s\t%s\t%s\t%s\t%s\n' % (
         'prefix', 'gene_id', 'full_seq_score', 'len_ratio', 'busco_score'
     )
     outhandle.write(header_txt)
     for tup1, tup2 in D_score_element.items():
         prefix, gene_id = tup1
         full_seq_score, len_ratio, busco_score = tup2
-        row_txt = '{}\t{}\t{}\t{}\t{}\n'.format(
+        row_txt = '%s\t%s\t%s\t%s\t%s\n' % (
             prefix, gene_id, full_seq_score, len_ratio, busco_score
         )
         outhandle.write(row_txt)
     outhandle.close()
 
     # Write cPickle
-    output_pickle1 = os.path.join(output_dir, 'busco_score.p')
-    cPickle.dump(D_busco, open(output_pickle1, 'wb'))
+    output_pickle1 = os.path.join(busco_dir, 'busco_score.p')
+    cPickle.dump(D_busco_score, open(output_pickle1, 'wb'))
+
+    output_pickle2 = os.path.join(busco_dir, 'busco_list.p')
+    cPickle.dump(D_busco_list, open(output_pickle2, 'wb'))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main(sys.argv[1:])
