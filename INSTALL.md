@@ -85,7 +85,7 @@ Download FunGAP using GitHub clone. Suppose we are installing FunGAP in your `$H
 ```
 cd $HOME
 git clone https://github.com/CompSynBioLab-KoreaUniv/FunGAP.git
-cd FunGAP/
+cd fungap/
 export FUNGAP_DIR=$(pwd)
 ```
 
