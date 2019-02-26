@@ -67,13 +67,10 @@ conda activate fungap
 
 ### 1.4. Add channels
 
-**This step is important otherwise Maker will stop**
-
 ```
-conda config --remove channels bioconda
-conda config --remove channels conda-forge
-conda config --add channels bioconda/label/cf201901
-conda config --add channels conda-forge/label/cf201901
+conda config --add channels defaults
+conda config --add channels bioconda
+conda config --add channels conda-forge
 ```
 
 ### 1.5. Install dependencies
